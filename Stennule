@@ -1,0 +1,63 @@
+cls
+Import-Module ActiveDirectory
+#Loeme sisse kasutajad
+$users = Import-Csv C:\Users\Administrator\Downloads\kasutajad.csv
+
+#Teen tsükkli mis kontrollib kus OUs on kasutajad
+#Juhul kui OUd pole, teeb ta uue
+
+foreach($user in $users) {
+
+    #Teen muutujad
+    $nimi = $user.Eesnimi + " " + $user.Perenimi
+    $SAM = ($user.Eesnimi+"."+$user.Perenimi).ToLower()
+    $UPN = ($user.Eesnimi).ToLower() + "." + ($user.Perenimi).ToLower()+"@tonisson.local"
+    
+    $pass = 1..3 | ForEach-Object { Get-Random -Maximum (($user.Eesnimi).ToLower()).Length }
+    $pass = -join ($user.Perenimi).ToLower()[$pass] 
+    $pass += Get-Random -Maximum 10
+    $pass += Get-Random -Maximum 10
+    $pass += Get-Random -Maximum 10
+    $pass += Get-Random -Maximum 10
+    $pass += Get-Random -Maximum 10
+    $pass += Get-Random -Maximum 10
+    $pass = $pass.substring(0,1).toupper()+$pass.substring(1).tolower()
+    $parool = $pass | ConvertTo-SecureString -AsPlainText -Force
+
+    $OU = ($user.Osakond).ToUpper()
+    $parent = 'OU=KASUTAJAD,DC=tonisson,DC=local'
+    $OUS = 'OU='+$OU+',OU=KASUTAJAD,DC=tonisson,DC=local'
+    
+    
+
+    #Kui OU puudub, siis teeb selle
+    if (Get-ADOrganizationalUnit -Filter "Name -eq '$OU'"){
+        Write-Host "$OU already exists."
+    } else {
+        New-ADOrganizationalUnit -Name $OU -path $parent
+        $Grupp = New-ADGroup -name $OU -GroupScope Global -Path $OUS
+        $Grupp
+        
+        
+        
+    }
+
+try{
+    (Get-ADUser $SAM).sAMAccountName
+    $olemas = $true
+    $ER = Write-Host "$SAM, on juba olemas"
+
+
+    
+}
+#Teeb kasutajad kui neid pole
+catch [Microsoft.ActiveDirectory.Management.ADIdentityResolutionException]{
+New-ADUser -Name $nimi -GivenName $user.Eesnimi -Surname $user.Perekonnanimi -EmailAddress $UPN -SamAccountName $SAM -UserPrincipalName $UPN -AccountPassword $parool -DisplayName $nimi -ChangePasswordAtLogon $true -Path $OUS -Enabled $true
+
+}
+
+Add-ADGroupMember -Identity $OU -Members $SAM
+
+
+}
+
