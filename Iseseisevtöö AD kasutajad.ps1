@@ -7,7 +7,7 @@
 cls
 
 #Loeme sisse kasutajad
-$users = Import-Csv C:\POWERSHELL\kasutajad.csv
+$users = Import-Csv C:\Users\Administrator\Downloads\kasutajad.csv
 
 #Teen tsükkli mis kontrollib kus OUs on kasutajad
 #Juhul kui OUd pole, teeb ta uue
@@ -17,9 +17,9 @@ foreach($user in $users) {
     #Teen muutujad
     $nimi = $user.Eesnimi + " " + $user.Perekonnanimi
     $SAM = ($user.Eesnimi[0]+$user.Perekonnanimi).ToLower()
-    $UPN = ($user.Eesnimi).ToLower() + "." + ($user.Perekonnanimi).ToLower()+"@tonisson.local"
-    $parool = (ConvertTo-SecureString -AsPlainText "Par00lA" -Force)
-    $OU = ($user.osakond).ToUpper()
+    $UPN = ($user.Eesnimi).ToLower() + "." + ($user.Perekonnanimi).ToLower()+"@oige.ee"
+    $parool = (ConvertTo-SecureString -AsPlainText "Pasw0rd" -Force)
+    $OU = ($user.Osakond).ToUpper()
     $parent = 'OU=KASUTAJAD,DC=tonisson,DC=local'
     $OUS = 'OU='+$OU+',OU=KASUTAJAD,DC=tonisson,DC=local'
    
